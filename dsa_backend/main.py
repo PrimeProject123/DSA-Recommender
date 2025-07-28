@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer, util
 app = FastAPI()
 
 # ------------------------
-# 🧠 Data Models
+#  Data Models
 # ------------------------
 
 class Problem(BaseModel):
@@ -14,41 +14,59 @@ class Problem(BaseModel):
     difficulty: str
     acRate: float
     frontendQuestionId: int
-    topicTags: List[str]  # Only list of tag slugs (e.g. ['array', 'dp'])
+    topicTags: List[str]
 
 class RecommendRequest(BaseModel):
     done: List[Problem]
-    notDone: List[Problem]
+    all: List[Problem]
     preferredTag: Optional[str] = None
 
 # ------------------------
-# 🚀 Recommender Class
+#  Recommender Class
 # ------------------------
 
 class Recommender:
     def __init__(self):
-        print("🔁 Loading transformer model...")
+        print(" Loading transformer model...")
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
-        print("✅ Model loaded.")
+        print(" Model loaded.")
 
     def _format(self, p: Problem) -> str:
         tags = ", ".join(p.topicTags)
         return f"{p.titleSlug.replace('-', ' ')} | Difficulty: {p.difficulty} | Acceptance: {p.acRate:.2f}% | Topics: {tags}"
 
-    def suggest(self, done: List[Problem], not_done: List[Problem], preferred_tag: Optional[str] = None, top_k: int = 50):
-        if not done or not not_done:
-            return []
+    def suggest(self, done: List[Problem], all_problems: List[Problem], preferred_tag: Optional[str] = None, top_k: int = 50):
+        done_ids = set(p.frontendQuestionId for p in done)
+        not_done = [p for p in all_problems if p.frontendQuestionId not in done_ids]
 
-        # Specific topic requested
+        #  Cold start
+        if not done:
+            if preferred_tag:
+                tagged = [p for p in not_done if preferred_tag.lower() in [t.lower() for t in p.topicTags]]
+                tagged.sort(key=lambda p: (-p.acRate, p.difficulty != "Easy"))
+                return tagged[:top_k]
+            else:
+                not_done.sort(key=lambda p: (-p.acRate, p.difficulty != "Easy"))
+                return not_done[:top_k]
+
+        #  Tag filtering if preferred_tag is provided
+        tagged_done = []
+        tagged_not_done = []
         if preferred_tag:
-            print(f"🔍 Filtering by preferred tag: {preferred_tag}")
-            filtered = [p for p in not_done if preferred_tag.lower() in [t.lower() for t in p.topicTags]]
-            if not filtered:
-                return []
-            filtered.sort(key=lambda p: (-p.acRate, p.titleSlug))
-            return filtered[:top_k]
+            tagged_done = [p for p in done if preferred_tag.lower() in [t.lower() for t in p.topicTags]]
+            tagged_not_done = [p for p in not_done if preferred_tag.lower() in [t.lower() for t in p.topicTags]]
 
-        # General recommendation logic
+            if not tagged_done:
+                tagged_not_done.sort(key=lambda p: (-p.acRate, p.difficulty != "Easy"))
+                return tagged_not_done[:top_k]
+
+            done = tagged_done
+            not_done = tagged_not_done
+
+            if not done or not not_done:
+                return []
+
+        #  Semantic + hardness-based ranking
         avg_ac = sum(p.acRate for p in done) / len(done)
         user_tags = set(tag for p in done for tag in p.topicTags)
 
@@ -76,12 +94,12 @@ class Recommender:
         return [p for _, p in scored[:top_k]]
 
 # ------------------------
-# 🔧 Setup API
+#  Setup API
 # ------------------------
 
 recommender = Recommender()
 
 @app.post("/recommend")
 async def recommend(data: RecommendRequest):
-    results = recommender.suggest(data.done, data.notDone, data.preferredTag)
+    results = recommender.suggest(data.done, data.all, data.preferredTag)
     return {"suggestions": [r.dict() for r in results]}

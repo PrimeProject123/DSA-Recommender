@@ -23,7 +23,7 @@ router.get('/sync/problems', async (req, res) => {
     console.log(await Problem.countDocuments());
     
     await Problem.deleteMany();
-    
+     
     console.log(await Problem.countDocuments());
 
 

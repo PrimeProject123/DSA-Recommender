@@ -1,7 +1,9 @@
-import { Sparkles, ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { Sparkles, ChevronDown, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useAuth } from "../contexts/AuthContext";
+import api from "../utils/api";
 
 export default function Personalize() {
   const [selectedLanguages, setSelectedLanguages] = useState([]);
@@ -10,22 +12,55 @@ export default function Personalize() {
   const [showExperienceDropdown, setShowExperienceDropdown] = useState(false);
   const [showPreparationDropdown, setShowPreparationDropdown] = useState(false);
   const [showTargetDropdown, setShowTargetDropdown] = useState(false);
-  const [selectedExperience, setSelectedExperience] = useState('');
-  const [selectedPreparation, setSelectedPreparation] = useState('');
-  const [selectedTarget, setSelectedTarget] = useState('');
+  const [selectedExperience, setSelectedExperience] = useState("");
+  const [selectedPreparation, setSelectedPreparation] = useState("");
+  const [selectedTarget, setSelectedTarget] = useState("");
   const [selectedTopics, setSelectedTopics] = useState([]);
-  const [validationError, setValidationError] = useState('');
+  const [validationError, setValidationError] = useState("");
+  const [saving, setSaving] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
 
-  const programmingLanguages = ['C', 'C++', 'Python', 'Java', 'HTML', 'Swift', 'CSS'];
-  const topics = ['Arrays', 'Strings', 'Recursion', 'Trees', 'BFS', 'LFS', 'Dynamic Programming', 'Bubble short', 'No Topic'];
-  const experienceLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
-  const preparationGoals = ['Internship', 'Placement (Tech)', 'Competitive Exams', 'Improving problem-solving skills'];
-  const dailyTargets = ['2 Question/day', '3 Question/day', '4 Question/day'];
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user]);
+
+  const programmingLanguages = [
+    "C",
+    "C++",
+    "Python",
+    "Java",
+    "HTML",
+    "Swift",
+    "CSS",
+  ];
+  const topics = [
+    "Arrays",
+    "Strings",
+    "Recursion",
+    "Trees",
+    "BFS",
+    "LFS",
+    "Dynamic Programming",
+    "Bubble short",
+    "No Topic",
+  ];
+  const experienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
+  const preparationGoals = [
+    "Internship",
+    "Placement (Tech)",
+    "Competitive Exams",
+    "Improving problem-solving skills",
+  ];
+  const dailyTargets = ["2 Question/day", "3 Question/day", "4 Question/day"];
 
   const toggleLanguage = (language) => {
     if (selectedLanguages.includes(language)) {
-      setSelectedLanguages(selectedLanguages.filter(lang => lang !== language));
+      setSelectedLanguages(
+        selectedLanguages.filter((lang) => lang !== language)
+      );
     } else {
       setSelectedLanguages([...selectedLanguages, language]);
     }
@@ -48,7 +83,7 @@ export default function Personalize() {
 
   const toggleTopic = (topic) => {
     if (selectedTopics.includes(topic)) {
-      setSelectedTopics(selectedTopics.filter(t => t !== topic));
+      setSelectedTopics(selectedTopics.filter((t) => t !== topic));
     } else {
       setSelectedTopics([...selectedTopics, topic]);
     }
@@ -56,12 +91,12 @@ export default function Personalize() {
 
   const openDropdown = (dropdownType) => {
     // Check if the clicked dropdown is already open, if so close it
-    const isCurrentlyOpen = 
-      (dropdownType === 'language' && showLanguageDropdown) ||
-      (dropdownType === 'experience' && showExperienceDropdown) ||
-      (dropdownType === 'preparation' && showPreparationDropdown) ||
-      (dropdownType === 'target' && showTargetDropdown) ||
-      (dropdownType === 'topics' && showTopicsDropdown);
+    const isCurrentlyOpen =
+      (dropdownType === "language" && showLanguageDropdown) ||
+      (dropdownType === "experience" && showExperienceDropdown) ||
+      (dropdownType === "preparation" && showPreparationDropdown) ||
+      (dropdownType === "target" && showTargetDropdown) ||
+      (dropdownType === "topics" && showTopicsDropdown);
 
     // Close all dropdowns first
     setShowLanguageDropdown(false);
@@ -69,66 +104,84 @@ export default function Personalize() {
     setShowExperienceDropdown(false);
     setShowPreparationDropdown(false);
     setShowTargetDropdown(false);
-    
+
     // If the clicked dropdown was not open, then open it
     if (!isCurrentlyOpen) {
       switch (dropdownType) {
-        case 'language':
+        case "language":
           setShowLanguageDropdown(true);
           break;
-        case 'experience':
+        case "experience":
           setShowExperienceDropdown(true);
           break;
-        case 'preparation':
+        case "preparation":
           setShowPreparationDropdown(true);
           break;
-        case 'target':
+        case "target":
           setShowTargetDropdown(true);
           break;
-        case 'topics':
+        case "topics":
           setShowTopicsDropdown(true);
           break;
       }
     }
   };
 
-  const handleGoToDashboard = () => {
+  const handleGoToDashboard = async () => {
     // Validate all required fields
     if (selectedLanguages.length === 0) {
-      setValidationError('Please select at least one programming language');
+      setValidationError("Please select at least one programming language");
       return;
     }
     if (!selectedExperience) {
-      setValidationError('Please select your experience level');
+      setValidationError("Please select your experience level");
       return;
     }
     if (!selectedPreparation) {
-      setValidationError('Please select what you are preparing for');
+      setValidationError("Please select what you are preparing for");
       return;
     }
     if (!selectedTarget) {
-      setValidationError('Please select your daily practice target');
+      setValidationError("Please select your daily practice target");
       return;
     }
     if (selectedTopics.length === 0) {
-      setValidationError('Please select at least one topic you are confident in');
+      setValidationError(
+        "Please select at least one topic you are confident in"
+      );
       return;
     }
 
-    // All validations passed
-    setValidationError('');
-    router.push('/dashboard');
+    // All validations passed - save preferences
+    setValidationError("");
+    setSaving(true);
+
+    try {
+      await api.savePreferences(user.username, {
+        experienceLevel: selectedExperience,
+        preparationGoal: selectedPreparation,
+        dailyTarget: parseInt(selectedTarget.split(" ")[0]), // Extract number from "2 Question/day"
+        confidentTopics: selectedTopics,
+        programmingLanguages: selectedLanguages,
+      });
+
+      // Navigate to dashboard after successful save
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error saving preferences:", error);
+      setValidationError("Failed to save preferences. Please try again.");
+      setSaving(false);
+    }
   };
 
   return (
     <div className="h-screen relative overflow-hidden">
       {/* Background Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url(/loginBg.png)'
-        }}
-      ></div>
+          backgroundImage: "url(/loginBg.png)",
+        }}></div>
 
       <div className="relative z-10 flex flex-col items-center justify-center h-screen px-4">
         {/* Header/Branding */}
@@ -138,14 +191,17 @@ export default function Personalize() {
             <h1 className="text-2xl font-bold text-white">CodeAscend</h1>
           </div>
           <p className="text-gray-300 text-xs max-w-sm">
-            Personalized coding paths. Intelligent progress tracking. Built to get you hired.
+            Personalized coding paths. Intelligent progress tracking. Built to
+            get you hired.
           </p>
         </div>
 
         {/* Personalization Form */}
         <div className="w-full max-w-md">
           <div className="bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700">
-            <h2 className="text-xl font-bold text-white mb-6">Let's personalize your practice plan</h2>
+            <h2 className="text-xl font-bold text-white mb-6">
+              Let's personalize your practice plan
+            </h2>
 
             {/* Validation Error */}
             {validationError && (
@@ -157,11 +213,12 @@ export default function Personalize() {
             {/* Programming Languages */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <label className="text-gray-300 text-sm">Select Programming Language(s) *</label>
-                <button 
-                  onClick={() => openDropdown('language')}
-                  className="text-gray-400 hover:text-white"
-                >
+                <label className="text-gray-300 text-sm">
+                  Select Programming Language(s) *
+                </label>
+                <button
+                  onClick={() => openDropdown("language")}
+                  className="text-gray-400 hover:text-white">
                   <ChevronDown className="w-4 h-4" />
                 </button>
               </div>
@@ -173,10 +230,9 @@ export default function Personalize() {
                       onClick={() => toggleLanguage(language)}
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         selectedLanguages.includes(language)
-                          ? 'bg-yellow-500 text-gray-800'
-                          : 'bg-gray-700 text-white hover:bg-gray-600'
-                      }`}
-                    >
+                          ? "bg-yellow-500 text-gray-800"
+                          : "bg-gray-700 text-white hover:bg-gray-600"
+                      }`}>
                       {language}
                     </button>
                   ))}
@@ -187,11 +243,12 @@ export default function Personalize() {
             {/* Experience Level */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <label className="text-gray-300 text-sm">Your current experience level in coding *</label>
-                <button 
-                  onClick={() => openDropdown('experience')}
-                  className="text-gray-400 hover:text-white"
-                >
+                <label className="text-gray-300 text-sm">
+                  Your current experience level in coding *
+                </label>
+                <button
+                  onClick={() => openDropdown("experience")}
+                  className="text-gray-400 hover:text-white">
                   <ChevronDown className="w-4 h-4" />
                 </button>
               </div>
@@ -203,10 +260,9 @@ export default function Personalize() {
                       onClick={() => selectExperience(level)}
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         selectedExperience === level
-                          ? 'bg-yellow-500 text-gray-800'
-                          : 'bg-gray-700 text-white hover:bg-gray-600'
-                      }`}
-                    >
+                          ? "bg-yellow-500 text-gray-800"
+                          : "bg-gray-700 text-white hover:bg-gray-600"
+                      }`}>
                       {level}
                     </button>
                   ))}
@@ -217,11 +273,12 @@ export default function Personalize() {
             {/* Preparation Goal */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <label className="text-gray-300 text-sm">What are you currently preparing for? *</label>
-                <button 
-                  onClick={() => openDropdown('preparation')}
-                  className="text-gray-400 hover:text-white"
-                >
+                <label className="text-gray-300 text-sm">
+                  What are you currently preparing for? *
+                </label>
+                <button
+                  onClick={() => openDropdown("preparation")}
+                  className="text-gray-400 hover:text-white">
                   <ChevronDown className="w-4 h-4" />
                 </button>
               </div>
@@ -233,10 +290,9 @@ export default function Personalize() {
                       onClick={() => selectPreparation(goal)}
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         selectedPreparation === goal
-                          ? 'bg-yellow-500 text-gray-800'
-                          : 'bg-gray-700 text-white hover:bg-gray-600'
-                      }`}
-                    >
+                          ? "bg-yellow-500 text-gray-800"
+                          : "bg-gray-700 text-white hover:bg-gray-600"
+                      }`}>
                       {goal}
                     </button>
                   ))}
@@ -247,11 +303,12 @@ export default function Personalize() {
             {/* Daily Practice Target */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <label className="text-gray-300 text-sm">Daily Practice Target *</label>
-                <button 
-                  onClick={() => openDropdown('target')}
-                  className="text-gray-400 hover:text-white"
-                >
+                <label className="text-gray-300 text-sm">
+                  Daily Practice Target *
+                </label>
+                <button
+                  onClick={() => openDropdown("target")}
+                  className="text-gray-400 hover:text-white">
                   <ChevronDown className="w-4 h-4" />
                 </button>
               </div>
@@ -263,10 +320,9 @@ export default function Personalize() {
                       onClick={() => selectTarget(target)}
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         selectedTarget === target
-                          ? 'bg-yellow-500 text-gray-800'
-                          : 'bg-gray-700 text-white hover:bg-gray-600'
-                      }`}
-                    >
+                          ? "bg-yellow-500 text-gray-800"
+                          : "bg-gray-700 text-white hover:bg-gray-600"
+                      }`}>
                       {target}
                     </button>
                   ))}
@@ -277,11 +333,12 @@ export default function Personalize() {
             {/* Confident Topics */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <label className="text-gray-300 text-sm">Topics you're confident in *</label>
-                <button 
-                  onClick={() => openDropdown('topics')}
-                  className="text-gray-400 hover:text-white"
-                >
+                <label className="text-gray-300 text-sm">
+                  Topics you're confident in *
+                </label>
+                <button
+                  onClick={() => openDropdown("topics")}
+                  className="text-gray-400 hover:text-white">
                   <ChevronDown className="w-4 h-4" />
                 </button>
               </div>
@@ -293,10 +350,9 @@ export default function Personalize() {
                       onClick={() => toggleTopic(topic)}
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         selectedTopics.includes(topic)
-                          ? 'bg-yellow-500 text-gray-800'
-                          : 'bg-gray-700 text-white hover:bg-gray-600'
-                      }`}
-                    >
+                          ? "bg-yellow-500 text-gray-800"
+                          : "bg-gray-700 text-white hover:bg-gray-600"
+                      }`}>
                       {topic}
                     </button>
                   ))}
@@ -305,18 +361,43 @@ export default function Personalize() {
             </div>
 
             {/* Go to Dashboard Button */}
-            <button 
+            <button
               onClick={handleGoToDashboard}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Go to Dashboard
+              disabled={saving}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+              {saving ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                "Go to Dashboard"
+              )}
             </button>
           </div>
         </div>
 
         {/* Back to Login Link */}
         <div className="mt-4">
-          <Link href="/login" className="text-gray-300 hover:text-white text-xs">
+          <Link
+            href="/login"
+            className="text-gray-300 hover:text-white text-xs">
             ← Back to Login
           </Link>
         </div>

@@ -151,8 +151,8 @@ export default function TopicProblems() {
       setLoading(true);
 
       // Get user profile to check solved problems
-      const profile = await api.getUserProfile(user.username);
-      const solvedIds = profile.solvedProblems || [];
+      const profileResponse = await api.getUserProfile(user.username);
+      const solvedIds = profileResponse.user?.solvedProblems || [];
       setSolvedProblemIds(solvedIds);
 
       // Fetch problems for this topic
@@ -177,8 +177,8 @@ export default function TopicProblems() {
       const problemsWithStatus = topicProblems.map((p) => ({
         ...p,
         solved: solvedIds.includes(p.titleSlug),
-        premium: false, // Add premium check if available
-        companies: [], // Add companies if available from problem data
+        premium: p.premium || p.isPaidOnly || false,
+        companies: p.companies || [],
       }));
 
       // Calculate stats

@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Problem = require("../model/problemModel");
 const { LeetCode } = require("leetcode-query");
+const { authenticate } = require("../middleware/auth");
 
-// Sync all LeetCode problems into MongoDB
-router.get("/sync/problems", async (req, res) => {
+// Sync all LeetCode problems into MongoDB (authenticated - admin operation)
+router.get("/sync/problems", authenticate, async (req, res) => {
   try {
     const leetcode = new LeetCode();
 

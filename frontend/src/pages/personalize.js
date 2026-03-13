@@ -32,9 +32,9 @@ export default function Personalize() {
     "C++",
     "Python",
     "Java",
-    "HTML",
-    "Swift",
-    "CSS",
+    "JavaScript",
+    "TypeScript",
+    "Go",
   ];
   const topics = [
     "Arrays",
@@ -42,10 +42,10 @@ export default function Personalize() {
     "Recursion",
     "Trees",
     "BFS",
-    "LFS",
+    "DFS",
     "Dynamic Programming",
-    "Bubble short",
-    "No Topic",
+    "Sorting",
+    "Graphs",
   ];
   const experienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
   const preparationGoals = [

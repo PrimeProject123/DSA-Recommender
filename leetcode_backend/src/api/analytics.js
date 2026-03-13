@@ -2,9 +2,15 @@ const express = require("express");
 const router = express.Router();
 const User = require("../model/userModel");
 const Problem = require("../model/problemModel");
+const { authenticate } = require("../middleware/auth");
 
-// Get user profile
-router.get("/profile/:username", async (req, res) => {
+// Escape special regex characters to prevent ReDoS
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Get user profile (authenticated)
+router.get("/profile/:username", authenticate, async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -38,7 +44,7 @@ router.get("/profile/:username", async (req, res) => {
         totalSolved: user.acceptedProblems?.length || 0,
         solvedProblems: user.acceptedProblems || [], // Array of titleSlugs
         lastSynced: user.lastSynced,
-        ranking: 12543, // This would come from LeetCode API
+        ranking: user.ranking || 0, // Use stored ranking or 0
         streak,
         joinDate: user.createdAt || new Date(),
         difficultyStats,
@@ -51,8 +57,8 @@ router.get("/profile/:username", async (req, res) => {
   }
 });
 
-// Get topic-wise analysis
-router.get("/report/:username", async (req, res) => {
+// Get topic-wise analysis (authenticated)
+router.get("/report/:username", authenticate, async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -131,8 +137,8 @@ router.get("/report/:username", async (req, res) => {
         hardCount: solvedProblemDocs.filter((p) => p.difficulty === "Hard")
           .length,
         accuracy: solvedProblemDocs.length > 0 
-          ? Math.round((solvedProblemDocs.length / (solvedProblemDocs.length * 1.3)) * 100) 
-          : 0, // Approximate accuracy based on solved problems
+          ? Math.round((solvedProblemDocs.length / await Problem.countDocuments()) * 100) 
+          : 0, // Accuracy based on total problems in DB
         streak,
       },
     });
@@ -142,8 +148,8 @@ router.get("/report/:username", async (req, res) => {
   }
 });
 
-// Get problems by topic
-router.get("/topic/:topic/problems", async (req, res) => {
+// Get problems by topic (authenticated)
+router.get("/topic/:topic/problems", authenticate, async (req, res) => {
   try {
     const { topic } = req.params;
     const { difficulty, status, search } = req.query;
@@ -177,12 +183,13 @@ router.get("/topic/:topic/problems", async (req, res) => {
       query.difficulty = difficulty;
     }
 
-    // Apply search filter
+    // Apply search filter (escape user input to prevent ReDoS)
     if (search) {
+      const escapedSearch = escapeRegExp(search);
       query.$or = [
-        { title: new RegExp(search, "i") },
-        { titleSlug: new RegExp(search, "i") },
-        { tags: { $in: [new RegExp(search, "i")] } },
+        { title: new RegExp(escapedSearch, "i") },
+        { titleSlug: new RegExp(escapedSearch, "i") },
+        { tags: { $in: [new RegExp(escapedSearch, "i")] } },
       ];
     }
 
@@ -201,13 +208,10 @@ router.get("/topic/:topic/problems", async (req, res) => {
     const enhancedProblems = problems.map((problem) => ({
       ...problem.toObject(),
       solved: solvedProblems.includes(problem.titleSlug),
-      acceptanceRate: problem.acRate || Math.floor(Math.random() * 70) + 15,
-      frequency: Math.floor(Math.random() * 100),
-      companies: ["Google", "Amazon", "Microsoft", "Facebook", "Apple"].slice(
-        0,
-        Math.floor(Math.random() * 3) + 1
-      ),
-      premium: Math.random() > 0.8,
+      acceptanceRate: problem.acRate || 0,
+      frequency: 0,
+      companies: [],
+      premium: problem.isPaidOnly || false,
     }));
 
     res.json({
@@ -227,74 +231,8 @@ router.get("/topic/:topic/problems", async (req, res) => {
   }
 });
 
-// Get user preferences
-router.get("/preferences/:username", async (req, res) => {
-  try {
-    const { username } = req.params;
-
-    const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json({
-      username: user.username,
-      dailyTarget: user.preferences?.dailyTarget || 3,
-      experienceLevel: user.preferences?.experienceLevel || "Beginner",
-      confidentTopics: user.preferences?.confidentTopics || ["Array"],
-      targetedTopics: user.preferences?.targetedTopics || ["Dynamic Programming"],
-      hasPremium: user.preferences?.hasPremium || false,
-      recommendationCount: user.preferences?.recommendationCount || 10,
-      notifications: user.preferences?.notifications !== false,
-      publicProfile: user.preferences?.publicProfile || false,
-    });
-  } catch (error) {
-    console.error("Error fetching user preferences:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-// Update user preferences
-router.post("/preferences/:username", async (req, res) => {
-  try {
-    const { username } = req.params;
-    const {
-      dailyTarget,
-      preferredDifficulty,
-      favoriteTopics,
-      notifications,
-      publicProfile,
-      hasPremium,
-      recommendationCount,
-    } = req.body;
-
-    const user = await User.findOneAndUpdate(
-      { username },
-      {
-        $set: {
-          "preferences.dailyTarget": dailyTarget,
-          "preferences.experienceLevel": preferredDifficulty,
-          "preferences.confidentTopics": favoriteTopics,
-          "preferences.notifications": notifications,
-          "preferences.publicProfile": publicProfile,
-          "preferences.hasPremium": hasPremium,
-          "preferences.recommendationCount": recommendationCount,
-          updatedAt: new Date(),
-        },
-      },
-      { new: true }
-    );
-
-    res.json({ message: "Preferences updated successfully", user });
-  } catch (error) {
-    console.error("Error updating user preferences:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-// Get questions statistics (total count and distribution)
-router.get("/questions/stats", async (req, res) => {
+// Get questions statistics (total count and distribution) (authenticated)
+router.get("/questions/stats", authenticate, async (req, res) => {
   try {
     console.log("📊 Fetching questions statistics...");
     const totalCount = await Problem.countDocuments();
@@ -346,8 +284,8 @@ router.get("/questions/stats", async (req, res) => {
   }
 });
 
-// Get user progress history (for charts)
-router.get("/progress/:username", async (req, res) => {
+// Get user progress history (for charts) (authenticated)
+router.get("/progress/:username", authenticate, async (req, res) => {
   try {
     const { username } = req.params;
 

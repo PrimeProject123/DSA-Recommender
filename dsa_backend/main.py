@@ -1,19 +1,26 @@
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import List, Optional
 from sentence_transformers import SentenceTransformer, util
 
 app = FastAPI()
 
 # Add CORS middleware
+allowed_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "model_loaded": recommender is not None if 'recommender' in dir() else False}
 
 # ------------------------
 #  Data Models
@@ -33,6 +40,18 @@ class RecommendRequest(BaseModel):
     preferredTag: Optional[str] = None
     hasPremium: Optional[bool] = False
     count: Optional[int] = 10
+
+    @validator('all')
+    def validate_all_size(cls, v):
+        if len(v) > 5000:
+            raise ValueError('Too many problems in request (max 5000)')
+        return v
+
+    @validator('done')
+    def validate_done_size(cls, v):
+        if len(v) > 5000:
+            raise ValueError('Too many solved problems in request (max 5000)')
+        return v
 
 # ------------------------
 #  Recommender Class
@@ -129,23 +148,29 @@ recommender = Recommender()
 
 @app.post("/recommend")
 async def recommend(data: RecommendRequest):
-    print(f"\n🤖 Recommendation Request:")
-    print(f"   - Problems solved: {len(data.done)}")
-    print(f"   - Total problems: {len(data.all)}")
-    print(f"   - Preferred tag: {data.preferredTag or 'None'}")
-    print(f"   - Has premium: {data.hasPremium}")
-    print(f"   - Requested count: {data.count}")
-    
-    results = recommender.suggest(data.done, data.all, data.preferredTag, data.hasPremium, top_k=data.count)
-    
-    print(f"\n✅ Generated {len(results)} recommendations:")
-    for i, r in enumerate(results[:5], 1):  # Show first 5
-        print(f"   {i}. {r.titleSlug} ({r.difficulty}) - {r.acRate:.1f}% acceptance")
-    if len(results) > 5:
-        print(f"   ... and {len(results) - 5} more\n")
-    
-    return {"suggestions": [r.dict() for r in results]}
+    try:
+        print(f"\n🤖 Recommendation Request:")
+        print(f"   - Problems solved: {len(data.done)}")
+        print(f"   - Total problems: {len(data.all)}")
+        print(f"   - Preferred tag: {data.preferredTag or 'None'}")
+        print(f"   - Has premium: {data.hasPremium}")
+        print(f"   - Requested count: {data.count}")
+        
+        results = recommender.suggest(data.done, data.all, data.preferredTag, data.hasPremium, top_k=data.count)
+        
+        print(f"\n✅ Generated {len(results)} recommendations:")
+        for i, r in enumerate(results[:5], 1):  # Show first 5
+            print(f"   {i}. {r.titleSlug} ({r.difficulty}) - {r.acRate:.1f}% acceptance")
+        if len(results) > 5:
+            print(f"   ... and {len(results) - 5} more\n")
+        
+        return {"suggestions": [r.dict() for r in results]}
+    except Exception as e:
+        print(f"❌ Recommendation error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate recommendations")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=False)
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host=host, port=port, reload=False)

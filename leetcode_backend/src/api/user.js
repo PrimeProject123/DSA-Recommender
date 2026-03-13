@@ -3,9 +3,10 @@ const router = express.Router();
 const User = require("../model/userModel");
 const Problem = require("../model/problemModel");
 const { LeetCode, Credential } = require("leetcode-query");
+const { authenticate } = require("../middleware/auth");
 
-// Get user preferences
-router.get("/preferences/:username", async (req, res) => {
+// Get user preferences (authenticated)
+router.get("/preferences/:username", authenticate, async (req, res) => {
   const username = req.params.username;
 
   try {
@@ -27,9 +28,15 @@ router.get("/preferences/:username", async (req, res) => {
   }
 });
 
-// Update user preferences
-router.post("/preferences/:username", async (req, res) => {
+// Update user preferences (authenticated)
+router.post("/preferences/:username", authenticate, async (req, res) => {
   const username = req.params.username;
+
+  // Ensure users can only update their own preferences
+  if (req.user.username !== username) {
+    return res.status(403).json({ message: "Cannot update another user's preferences" });
+  }
+
   const {
     experienceLevel,
     preparationGoal,
@@ -49,8 +56,12 @@ router.post("/preferences/:username", async (req, res) => {
         programmingLanguages,
         lastUpdated: new Date(),
       },
-      { upsert: true, new: true }
+      { new: true }
     );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     res.json(user);
   } catch (error) {
@@ -122,16 +133,25 @@ router.get("/options", async (req, res) => {
   }
 });
 
-// Save LeetCode session token
-router.post("/session", async (req, res) => {
+// Save LeetCode session token (authenticated)
+router.post("/session", authenticate, async (req, res) => {
   const { username, sessionToken } = req.body;
+
+  // Ensure users can only update their own session
+  if (req.user.username !== username) {
+    return res.status(403).json({ message: "Cannot update another user's session" });
+  }
 
   try {
     const user = await User.findOneAndUpdate(
       { username },
       { sessionToken },
-      { upsert: true, new: true }
+      { new: true }
     );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     res.json({ message: "Session token saved", success: true });
   } catch (error) {
@@ -140,7 +160,7 @@ router.post("/session", async (req, res) => {
   }
 });
 
-router.post("/acceptedQuestion/:username", async (req, res) => {
+router.post("/acceptedQuestion/:username", authenticate, async (req, res) => {
   const username = req.params.username;
   const { sessionToken } = req.body;
 
@@ -164,13 +184,16 @@ router.post("/acceptedQuestion/:username", async (req, res) => {
     let offset = 0;
     const limit = 100;
     let more = true;
+    const MAX_ITERATIONS = 100; // Safety limit to prevent infinite loops
+    let iterations = 0;
 
-    while (more) {
+    while (more && iterations < MAX_ITERATIONS) {
       const batch = await leetcode.submissions({ offset, limit });
       if (!batch || batch.length === 0) break;
       submissions.push(...batch);
       more = batch.length === limit;
       offset += limit;
+      iterations++;
       console.log(`   Fetched ${submissions.length} submissions so far...`);
     }
 

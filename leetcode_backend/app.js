@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const connectDB = require("./src/config/db.js");
 const cookieParser = require("cookie-parser");
@@ -6,7 +7,6 @@ const userRoutes = require("./src/api/user.js");
 const allProblems = require("./src/api/fetchAll.js");
 const analyticsRoutes = require("./src/api/analytics.js");
 const authRoutes = require("./src/api/auth.js");
-require("dotenv").config();
 const morgan = require("morgan");
 const cors = require("cors");
 
@@ -18,9 +18,10 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
     "⚠️  ERROR: JWT_SECRET must be set and at least 32 characters!"
   );
   console.error("⚠️  Please update your .env file");
+  process.exit(1);
 }
 
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(
@@ -43,6 +44,12 @@ app.use("/api", analyticsRoutes);
 // Health check
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "Internal server error" });
 });
 
 const PORT = process.env.PORT || 5000;

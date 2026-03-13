@@ -49,8 +49,10 @@ const CalendarHeatmap = ({ data }) => {
   };
 
   const getIntensityColor = (count) => {
-    // Dark mode colors
-    const darkMode = document.documentElement.classList.contains("dark");
+    // Check dark mode safely (SSR-compatible)
+    const darkMode = typeof document !== 'undefined' 
+      ? document.documentElement.classList.contains("dark")
+      : false;
 
     if (darkMode) {
       if (count === 0) return "#374151"; // gray-700
@@ -159,6 +161,7 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [progressData, setProgressData] = useState(null);
+  const [questionsStats, setQuestionsStats] = useState(null);
   const { user: authUser } = useAuth();
   const router = useRouter();
 
@@ -174,14 +177,16 @@ export default function Profile() {
     try {
       setLoading(true);
 
-      // Fetch user profile
-      const profileData = await api.getUserProfile(authUser.username);
+      // Fetch all data in parallel for better performance
+      const [profileData, reportData, progressResponse, statsData] = await Promise.all([
+        api.getUserProfile(authUser.username),
+        api.getReport(authUser.username),
+        api.getProgress(authUser.username),
+        api.getQuestionsStats(),
+      ]);
 
-      // Fetch report data
-      const reportData = await api.getReport(authUser.username);
-
-      // Fetch progress data
-      const progressResponse = await api.getProgress(authUser.username);
+      // Store questions stats for difficulty totals
+      setQuestionsStats(statsData);
 
       // Set user data with real values
       setUser({
@@ -253,17 +258,17 @@ export default function Profile() {
     }
   };
 
-  // Difficulty stats from progress data
+  // Difficulty stats from progress data (use real totals from API)
   const difficultyStats = progressData
     ? [
-        { name: "Easy", solved: progressData.easyCount || 0, total: 150 },
-        { name: "Medium", solved: progressData.mediumCount || 0, total: 200 },
-        { name: "Hard", solved: progressData.hardCount || 0, total: 100 },
+        { name: "Easy", solved: progressData.easyCount || 0, total: questionsStats?.distribution?.easy || 0 },
+        { name: "Medium", solved: progressData.mediumCount || 0, total: questionsStats?.distribution?.medium || 0 },
+        { name: "Hard", solved: progressData.hardCount || 0, total: questionsStats?.distribution?.hard || 0 },
       ]
     : [
-        { name: "Easy", solved: 0, total: 150 },
-        { name: "Medium", solved: 0, total: 200 },
-        { name: "Hard", solved: 0, total: 100 },
+        { name: "Easy", solved: 0, total: questionsStats?.distribution?.easy || 0 },
+        { name: "Medium", solved: 0, total: questionsStats?.distribution?.medium || 0 },
+        { name: "Hard", solved: 0, total: questionsStats?.distribution?.hard || 0 },
       ];
 
   // Calendar data from progress
@@ -290,9 +295,20 @@ export default function Profile() {
     { month: "Aug", solved: user?.totalSolved || 0 },
   ];
 
-  const handleSaveProfile = () => {
-    // API call to save profile
-    setIsEditing(false);
+  const handleSaveProfile = async () => {
+    try {
+      setLoading(true);
+      await api.savePreferences(user.username, {
+        name: user.name,
+        email: user.email,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      alert("Failed to save profile changes");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSavePreferences = async () => {

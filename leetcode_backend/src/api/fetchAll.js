@@ -3,11 +3,12 @@
 const express = require('express');
 const router = express.Router();  
 const Problem = require('../model/problemModel');
+const { authenticate } = require('../middleware/auth');
 
 // const { LeetCode } = require('leetcode-query');
 
 
-router.get('/all', async (req, res) => {
+router.get('/all', authenticate, async (req, res) => {
   try {
     // Fetch all problems from the database
     const problems = await Problem.find({});

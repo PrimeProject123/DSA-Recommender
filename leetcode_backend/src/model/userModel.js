@@ -35,9 +35,11 @@ userSchema.index({ lastSynced: -1 });
 userSchema.methods.calculateStreak = function () {
   if (!this.submissionDates || this.submissionDates.length === 0) return 0;
 
-  const sortedDates = this.submissionDates
-    .map((d) => new Date(d).setHours(0, 0, 0, 0))
-    .sort((a, b) => b - a);
+  // Deduplicate dates by converting to midnight timestamps and using Set
+  const uniqueDates = [...new Set(
+    this.submissionDates.map((d) => new Date(d).setHours(0, 0, 0, 0))
+  )];
+  const sortedDates = uniqueDates.sort((a, b) => b - a);
 
   const today = new Date().setHours(0, 0, 0, 0);
   const yesterday = today - 24 * 60 * 60 * 1000;

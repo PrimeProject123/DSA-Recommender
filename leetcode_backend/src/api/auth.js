@@ -60,7 +60,6 @@ router.post("/signup", async (req, res) => {
         username: user.username,
         email: user.email,
       },
-      token,
     });
   } catch (error) {
     console.error("Signup error:", error);
@@ -112,7 +111,6 @@ router.post("/login", async (req, res) => {
         username: user.username,
         email: user.email,
       },
-      token,
     });
   } catch (error) {
     console.error("Login error:", error);

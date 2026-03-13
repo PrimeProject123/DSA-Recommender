@@ -12,6 +12,10 @@ export const api = {
       credentials: "include",
       body: JSON.stringify({ username, password }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Login failed");
+    }
     return res.json();
   },
 
@@ -22,6 +26,10 @@ export const api = {
       credentials: "include",
       body: JSON.stringify({ username, email, password }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Signup failed");
+    }
     return res.json();
   },
 

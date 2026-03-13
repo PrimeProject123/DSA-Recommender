@@ -1,5 +1,7 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useEffect, useContext, useCallback } from "react";
 import { useRouter } from "next/router";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 export const AuthContext = createContext();
 
@@ -8,25 +10,10 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    // Check localStorage first for faster load
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Failed to parse stored user:", e);
-      }
-    }
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const res = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"
-        }/api/auth/me`,
+        `${API_BASE_URL}/api/auth/me`,
         {
           credentials: "include",
         }
@@ -48,14 +35,25 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Check localStorage first for faster load
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse stored user:", e);
+      }
+    }
+    checkAuth();
+  }, [checkAuth]);
 
   const login = async (username, password) => {
     try {
       const res = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"
-        }/api/auth/login`,
+        `${API_BASE_URL}/api/auth/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -81,9 +79,7 @@ export function AuthProvider({ children }) {
   const signup = async (username, email, password) => {
     try {
       const res = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"
-        }/api/auth/signup`,
+        `${API_BASE_URL}/api/auth/signup`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -109,9 +105,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"
-        }/api/auth/logout`,
+        `${API_BASE_URL}/api/auth/logout`,
         {
           method: "POST",
           credentials: "include",

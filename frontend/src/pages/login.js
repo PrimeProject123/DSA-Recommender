@@ -65,18 +65,7 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    setIsLoading(true);
-    setMessage("Connecting with Google...");
-
-    setTimeout(() => {
-      setMessage(
-        "✅ Google login successful! Redirecting to personalization..."
-      );
-      setTimeout(() => {
-        router.push("/personalize");
-      }, 2000);
-      setIsLoading(false);
-    }, 1500);
+    setMessage("Google login coming soon! Please use username/password to sign in.");
   };
 
   return (
@@ -115,7 +104,7 @@ export default function Login() {
             </div>
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2 transition-all duration-500">
-            LeetGenie
+            CodeAscend
           </h1>
           <p className="text-gray-600 dark:text-gray-300 text-sm max-w-sm leading-relaxed">
             ✨ Personalized coding paths

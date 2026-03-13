@@ -96,43 +96,35 @@ export default function Report() {
       router.push("/login");
       return;
     }
-    fetchReportData();
-    fetchQuestionsStats();
+    fetchAllReportData();
   }, [user]);
 
-  const fetchQuestionsStats = async () => {
+  // Fetch stats first, then report data that depends on stats
+  const fetchAllReportData = async () => {
     try {
-      const stats = await api.getQuestionsStats();
-      setQuestionsStats(stats);
-    } catch (error) {
-      console.error("Error fetching questions stats:", error);
-      // Set default values if API fails
-      setQuestionsStats({
-        total: 3000,
-        distribution: { easy: 800, medium: 1500, hard: 700 },
-        topicDistribution: {
-          array: 450,
-          string: 380,
-          "linked-list": 120,
-          tree: 350,
-          graph: 280,
-          "dynamic-programming": 400,
-          sorting: 180,
-          searching: 150,
-          stack: 200,
-          queue: 140,
-          heap: 160,
-          "hash-table": 220,
-        },
-      });
+      setLoading(true);
+      // Fetch questions stats first
+      let stats = questionsStats;
+      try {
+        stats = await api.getQuestionsStats();
+        setQuestionsStats(stats);
+      } catch (error) {
+        console.error("Error fetching questions stats:", error);
+      }
+      // Now fetch report data with stats available
+      await fetchReportData(stats);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchReportData = async () => {
+  const fetchReportData = async (currentStats) => {
     try {
-      setLoading(true);
       // Fetch real report data from backend
       const reportData = await api.getReport(user.username);
+
+      // Use the passed-in stats to avoid race condition
+      const statsToUse = currentStats || questionsStats;
 
       // Transform backend data to match UI structure
       // reportData.topicStats is an object like { "array": {...}, "string": {...} }
@@ -142,7 +134,7 @@ export default function Report() {
                           { solved: 0, total: 0, accuracy: 0, easy: 0, medium: 0, hard: 0 };
 
         // Use real total from questions stats if available
-        const realTotal = questionsStats.topicDistribution?.[topic.id] || topicData.total || 50;
+        const realTotal = statsToUse?.topicDistribution?.[topic.id] || topicData.total || 50;
 
         return {
           ...topic,
@@ -170,12 +162,12 @@ export default function Report() {
       });
     } catch (error) {
       console.error("Error fetching report data:", error);
-      // Set default values on error
+      // Set default values on error (all zeros, not fake data)
       setTopicStats(
         DSA_TOPICS.map((topic) => ({
           ...topic,
           solved: 0,
-          total: 50,
+          total: 0,
           accuracy: 0,
           rating: getRating(0),
           easy: 0,
@@ -183,8 +175,6 @@ export default function Report() {
           hard: 0,
         }))
       );
-    } finally {
-      setLoading(false);
     }
   };
 

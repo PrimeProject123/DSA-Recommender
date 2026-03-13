@@ -1,4 +1,12 @@
-import { Sparkles, Rocket, Lock, Key, CheckCircle, Zap, Briefcase } from "lucide-react";
+import {
+  Sparkles,
+  Rocket,
+  Lock,
+  Key,
+  CheckCircle,
+  Zap,
+  Briefcase,
+} from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -65,7 +73,9 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    setMessage("Google login coming soon! Please use username/password to sign in.");
+    setMessage(
+      "Google login coming soon! Please use username/password to sign in.",
+    );
   };
 
   return (
@@ -128,7 +138,11 @@ export default function Login() {
                 }`}>
                 <div className="flex items-center">
                   <div className="mr-2">
-                    {message.includes("✅") ? <CheckCircle className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
+                    {message.includes("✅") ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      <Zap className="w-5 h-5" />
+                    )}
                   </div>
                   {message}
                 </div>
@@ -264,7 +278,8 @@ export default function Login() {
                   <a
                     href="#"
                     className="text-blue-600 dark:text-blue-400 text-sm hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium">
-                    Forgot Password? <Key className="w-4 h-4 inline-block ml-1" />
+                    Forgot Password?{" "}
+                    <Key className="w-4 h-4 inline-block ml-1" />
                   </a>
                 </div>
               )}
@@ -275,13 +290,17 @@ export default function Login() {
                 className="auth-button w-full py-3 px-4 rounded-xl font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
                 <div className="flex items-center justify-center">
                   <span className="mr-2">
-                    {activeTab === "login" ? <Rocket className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                    {activeTab === "login" ? (
+                      <Rocket className="w-5 h-5" />
+                    ) : (
+                      <Sparkles className="w-5 h-5" />
+                    )}
                   </span>
                   {isLoading
                     ? "Processing..."
                     : activeTab === "login"
-                    ? "Log In & Start Coding"
-                    : "Create Account"}
+                      ? "Log In & Start Coding"
+                      : "Create Account"}
                 </div>
               </button>
             </form>

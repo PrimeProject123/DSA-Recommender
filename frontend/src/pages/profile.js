@@ -50,9 +50,10 @@ const CalendarHeatmap = ({ data }) => {
 
   const getIntensityColor = (count) => {
     // Check dark mode safely (SSR-compatible)
-    const darkMode = typeof document !== 'undefined' 
-      ? document.documentElement.classList.contains("dark")
-      : false;
+    const darkMode =
+      typeof document !== "undefined"
+        ? document.documentElement.classList.contains("dark")
+        : false;
 
     if (darkMode) {
       if (count === 0) return "#374151"; // gray-700
@@ -86,7 +87,8 @@ const CalendarHeatmap = ({ data }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 theme-transition">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 transition-colors duration-500">
-        <CalendarDays className="inline-block w-5 h-5 mr-2" />Activity Calendar
+        <CalendarDays className="inline-block w-5 h-5 mr-2" />
+        Activity Calendar
       </h3>
       <div className="overflow-x-auto">
         <div className="inline-flex flex-col space-y-1">
@@ -178,12 +180,13 @@ export default function Profile() {
       setLoading(true);
 
       // Fetch all data in parallel for better performance
-      const [profileData, reportData, progressResponse, statsData] = await Promise.all([
-        api.getUserProfile(authUser.username),
-        api.getReport(authUser.username),
-        api.getProgress(authUser.username),
-        api.getQuestionsStats(),
-      ]);
+      const [profileData, reportData, progressResponse, statsData] =
+        await Promise.all([
+          api.getUserProfile(authUser.username),
+          api.getReport(authUser.username),
+          api.getProgress(authUser.username),
+          api.getQuestionsStats(),
+        ]);
 
       // Store questions stats for difficulty totals
       setQuestionsStats(statsData);
@@ -245,7 +248,7 @@ export default function Profile() {
       await api.saveSessionToken(user.username, user.sessionToken);
 
       alert(
-        `✅ Successfully synced ${result.totalAccepted || 0} accepted problems!`
+        `✅ Successfully synced ${result.totalAccepted || 0} accepted problems!`,
       );
 
       // Refresh profile data
@@ -261,14 +264,38 @@ export default function Profile() {
   // Difficulty stats from progress data (use real totals from API)
   const difficultyStats = progressData
     ? [
-        { name: "Easy", solved: progressData.easyCount || 0, total: questionsStats?.distribution?.easy || 0 },
-        { name: "Medium", solved: progressData.mediumCount || 0, total: questionsStats?.distribution?.medium || 0 },
-        { name: "Hard", solved: progressData.hardCount || 0, total: questionsStats?.distribution?.hard || 0 },
+        {
+          name: "Easy",
+          solved: progressData.easyCount || 0,
+          total: questionsStats?.distribution?.easy || 0,
+        },
+        {
+          name: "Medium",
+          solved: progressData.mediumCount || 0,
+          total: questionsStats?.distribution?.medium || 0,
+        },
+        {
+          name: "Hard",
+          solved: progressData.hardCount || 0,
+          total: questionsStats?.distribution?.hard || 0,
+        },
       ]
     : [
-        { name: "Easy", solved: 0, total: questionsStats?.distribution?.easy || 0 },
-        { name: "Medium", solved: 0, total: questionsStats?.distribution?.medium || 0 },
-        { name: "Hard", solved: 0, total: questionsStats?.distribution?.hard || 0 },
+        {
+          name: "Easy",
+          solved: 0,
+          total: questionsStats?.distribution?.easy || 0,
+        },
+        {
+          name: "Medium",
+          solved: 0,
+          total: questionsStats?.distribution?.medium || 0,
+        },
+        {
+          name: "Hard",
+          solved: 0,
+          total: questionsStats?.distribution?.hard || 0,
+        },
       ];
 
   // Calendar data from progress
@@ -402,7 +429,8 @@ export default function Profile() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            <User className="inline-block w-6 h-6 mr-2" />Profile
+            <User className="inline-block w-6 h-6 mr-2" />
+            Profile
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Manage your account, track progress, and customize preferences
@@ -569,8 +597,8 @@ export default function Profile() {
                         stat.name === "Easy"
                           ? "bg-green-500 dark:bg-green-400"
                           : stat.name === "Medium"
-                          ? "bg-yellow-500 dark:bg-yellow-400"
-                          : "bg-red-500 dark:bg-red-400"
+                            ? "bg-yellow-500 dark:bg-yellow-400"
+                            : "bg-red-500 dark:bg-red-400"
                       }`}
                       style={{
                         width: `${(stat.solved / stat.total) * 100}%`,
@@ -591,7 +619,8 @@ export default function Profile() {
             {/* Progress Chart */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 theme-transition stagger-animation">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 transition-colors duration-500">
-                <BarChart className="inline-block w-5 h-5 mr-2" />Problems Solved Over Time
+                <BarChart className="inline-block w-5 h-5 mr-2" />
+                Problems Solved Over Time
               </h3>
               <div className="h-80 flex items-end justify-between space-x-2 border-b border-gray-200 dark:border-gray-700 pb-4 transition-colors duration-500">
                 {solvedOverTime.map((item, index) => (
@@ -624,7 +653,8 @@ export default function Profile() {
             {/* Monthly Breakdown */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 theme-transition stagger-animation">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 transition-colors duration-500">
-                <BarChart className="inline-block w-5 h-5 mr-2" />Monthly Breakdown
+                <BarChart className="inline-block w-5 h-5 mr-2" />
+                Monthly Breakdown
               </h3>
               <div className="h-64 flex items-end justify-between space-x-2 border-b border-gray-200 dark:border-gray-700 pb-4 transition-colors duration-500">
                 {solvedOverTime.map((item, index) => (
@@ -659,7 +689,8 @@ export default function Profile() {
             {/* LeetCode Integration */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 theme-transition stagger-animation">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 transition-colors duration-500">
-                <Link2 className="inline-block w-5 h-5 mr-2" />LeetCode Integration
+                <Link2 className="inline-block w-5 h-5 mr-2" />
+                LeetCode Integration
               </h3>
               <div className="space-y-4">
                 <div>

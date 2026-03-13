@@ -59,7 +59,7 @@ export default function Personalize() {
   const toggleLanguage = (language) => {
     if (selectedLanguages.includes(language)) {
       setSelectedLanguages(
-        selectedLanguages.filter((lang) => lang !== language)
+        selectedLanguages.filter((lang) => lang !== language),
       );
     } else {
       setSelectedLanguages([...selectedLanguages, language]);
@@ -147,7 +147,7 @@ export default function Personalize() {
     }
     if (selectedTopics.length === 0) {
       setValidationError(
-        "Please select at least one topic you are confident in"
+        "Please select at least one topic you are confident in",
       );
       return;
     }

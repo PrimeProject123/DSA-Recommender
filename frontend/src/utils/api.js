@@ -73,12 +73,12 @@ export const api = {
   async getTopicProblems(topic, filters = {}) {
     // Remove undefined/null values from filters
     const cleanFilters = Object.fromEntries(
-      Object.entries(filters).filter(([_, v]) => v != null && v !== "")
+      Object.entries(filters).filter(([_, v]) => v != null && v !== ""),
     );
     const queryParams = new URLSearchParams(cleanFilters);
     const res = await fetch(
       `${API_BASE_URL}/api/topic/${topic}/problems?${queryParams}`,
-      { credentials: "include" }
+      { credentials: "include" },
     );
     if (!res.ok) throw new Error("Failed to fetch problems");
     const data = await res.json();
@@ -120,7 +120,7 @@ export const api = {
     all,
     preferredTag = null,
     hasPremium = false,
-    count = 10
+    count = 10,
   ) {
     // Transform data to match ML backend expectations
     const transformProblem = (p) => ({
@@ -168,7 +168,7 @@ export const api = {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ sessionToken }),
-      }
+      },
     );
     if (!res.ok) {
       const error = await res.json();

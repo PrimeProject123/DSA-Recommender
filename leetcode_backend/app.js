@@ -15,20 +15,20 @@ const app = express();
 // Validate environment variables
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   console.error(
-    "⚠️  ERROR: JWT_SECRET must be set and at least 32 characters!"
+    "⚠️  ERROR: JWT_SECRET must be set and at least 32 characters!",
   );
   console.error("⚠️  Please update your .env file");
   process.exit(1);
 }
 
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
-  })
+  }),
 );
 
 // DB
@@ -56,6 +56,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server started on port ${PORT}`);
   console.log(
-    `🔗 Frontend URL: ${process.env.FRONTEND_URL || "http://localhost:3000"}`
+    `🔗 Frontend URL: ${process.env.FRONTEND_URL || "http://localhost:3000"}`,
   );
 });

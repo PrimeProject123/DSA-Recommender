@@ -34,7 +34,9 @@ router.post("/preferences/:username", authenticate, async (req, res) => {
 
   // Ensure users can only update their own preferences
   if (req.user.username !== username) {
-    return res.status(403).json({ message: "Cannot update another user's preferences" });
+    return res
+      .status(403)
+      .json({ message: "Cannot update another user's preferences" });
   }
 
   const {
@@ -56,7 +58,7 @@ router.post("/preferences/:username", authenticate, async (req, res) => {
         programmingLanguages,
         lastUpdated: new Date(),
       },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
@@ -139,14 +141,16 @@ router.post("/session", authenticate, async (req, res) => {
 
   // Ensure users can only update their own session
   if (req.user.username !== username) {
-    return res.status(403).json({ message: "Cannot update another user's session" });
+    return res
+      .status(403)
+      .json({ message: "Cannot update another user's session" });
   }
 
   try {
     const user = await User.findOneAndUpdate(
       { username },
       { sessionToken },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
@@ -201,7 +205,7 @@ router.post("/acceptedQuestion/:username", authenticate, async (req, res) => {
       ...new Set(
         submissions
           .filter((s) => s.statusDisplay === "Accepted")
-          .map((s) => s.titleSlug)
+          .map((s) => s.titleSlug),
       ),
     ];
 
@@ -211,11 +215,13 @@ router.post("/acceptedQuestion/:username", authenticate, async (req, res) => {
     const updatedUser = await User.findOneAndUpdate(
       { username },
       { acceptedProblems: accepted, lastSynced: new Date(), sessionToken },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found. Please login first." });
+      return res
+        .status(404)
+        .json({ message: "User not found. Please login first." });
     }
 
     const problems = await Problem.find({ titleSlug: { $in: accepted } });

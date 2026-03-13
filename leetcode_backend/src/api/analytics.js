@@ -6,7 +6,7 @@ const { authenticate } = require("../middleware/auth");
 
 // Escape special regex characters to prevent ReDoS
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // Get user profile (authenticated)
@@ -98,9 +98,9 @@ router.get("/report/:username", authenticate, async (req, res) => {
           problem.tags &&
           problem.tags.some((tag) =>
             tags.some((topicTag) =>
-              tag.toLowerCase().includes(topicTag.toLowerCase())
-            )
-          )
+              tag.toLowerCase().includes(topicTag.toLowerCase()),
+            ),
+          ),
       );
 
       // Get all problems for this topic from database
@@ -131,14 +131,17 @@ router.get("/report/:username", authenticate, async (req, res) => {
         totalSolved: solvedProblemDocs.length,
         easyCount: solvedProblemDocs.filter((p) => p.difficulty === "Easy")
           .length,
-        mediumCount: solvedProblemDocs.filter(
-          (p) => p.difficulty === "Medium"
-        ).length,
+        mediumCount: solvedProblemDocs.filter((p) => p.difficulty === "Medium")
+          .length,
         hardCount: solvedProblemDocs.filter((p) => p.difficulty === "Hard")
           .length,
-        accuracy: solvedProblemDocs.length > 0 
-          ? Math.round((solvedProblemDocs.length / await Problem.countDocuments()) * 100) 
-          : 0, // Accuracy based on total problems in DB
+        accuracy:
+          solvedProblemDocs.length > 0
+            ? Math.round(
+                (solvedProblemDocs.length / (await Problem.countDocuments())) *
+                  100,
+              )
+            : 0, // Accuracy based on total problems in DB
         streak,
       },
     });
@@ -237,12 +240,14 @@ router.get("/questions/stats", authenticate, async (req, res) => {
     console.log("📊 Fetching questions statistics...");
     const totalCount = await Problem.countDocuments();
     console.log(`Total problems in DB: ${totalCount}`);
-    
+
     const easyCount = await Problem.countDocuments({ difficulty: "Easy" });
     const mediumCount = await Problem.countDocuments({ difficulty: "Medium" });
     const hardCount = await Problem.countDocuments({ difficulty: "Hard" });
 
-    console.log(`Difficulty breakdown - Easy: ${easyCount}, Medium: ${mediumCount}, Hard: ${hardCount}`);
+    console.log(
+      `Difficulty breakdown - Easy: ${easyCount}, Medium: ${mediumCount}, Hard: ${hardCount}`,
+    );
 
     // Get topic-wise distribution
     const topicMappings = {

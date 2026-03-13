@@ -43,7 +43,7 @@ router.post("/signup", async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     // Set cookie
@@ -94,7 +94,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     // Set cookie

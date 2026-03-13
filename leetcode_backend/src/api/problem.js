@@ -17,7 +17,7 @@ router.get("/sync/problems", authenticate, async (req, res) => {
         limit: 1000,
       });
       console.log(
-        `Fetched ${allProblemsData.length + page.questions.length} problems...`
+        `Fetched ${allProblemsData.length + page.questions.length} problems...`,
       );
       if (!page || page.questions.length === 0) {
         flag = false;

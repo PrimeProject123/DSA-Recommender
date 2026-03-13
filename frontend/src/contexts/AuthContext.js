@@ -1,7 +1,14 @@
-import { createContext, useState, useEffect, useContext, useCallback } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
 import { useRouter } from "next/router";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 export const AuthContext = createContext();
 
@@ -12,12 +19,9 @@ export function AuthProvider({ children }) {
 
   const checkAuth = useCallback(async () => {
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/auth/me`,
-        {
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        credentials: "include",
+      });
 
       if (res.ok) {
         const data = await res.json();
@@ -52,15 +56,12 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ username, password }),
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
 
       const data = await res.json();
 
@@ -78,15 +79,12 @@ export function AuthProvider({ children }) {
 
   const signup = async (username, email, password) => {
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/auth/signup`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ username, email, password }),
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, email, password }),
+      });
 
       const data = await res.json();
 
@@ -104,13 +102,10 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch(
-        `${API_BASE_URL}/api/auth/logout`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      await fetch(`${API_BASE_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
       setUser(null);
       localStorage.removeItem("user");
       router.push("/login");

@@ -31,7 +31,8 @@
 /* Theme Transitions - targeted to theme-relevant properties only */
 .theme-transition,
 .theme-transition * {
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+  transition:
+    background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
     color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -550,7 +551,9 @@ html[style*="--theme-flash"] {
 }
 
 .theme-transition.stagger-animation {
-  animation: colorShift 0.5s ease-out, slideInFromTop 0.6s ease-out;
+  animation:
+    colorShift 0.5s ease-out,
+    slideInFromTop 0.6s ease-out;
 }
 
 /* Special effects for icons during theme change */
@@ -566,7 +569,9 @@ html[style*="--theme-flash"] {
 .backdrop-blur-sm,
 .backdrop-blur-md,
 .backdrop-blur-lg {
-  transition: backdrop-filter 0.4s ease-out, background-color 0.4s ease-out;
+  transition:
+    backdrop-filter 0.4s ease-out,
+    background-color 0.4s ease-out;
 }
 
 /* Enhanced button transitions */
@@ -583,11 +588,13 @@ button,
 
 .card-hover:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 10px 25px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .dark .card-hover:hover {
-  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.3),
+  box-shadow:
+    0 10px 25px -3px rgba(0, 0, 0, 0.3),
     0 4px 6px -2px rgba(0, 0, 0, 0.1);
 }

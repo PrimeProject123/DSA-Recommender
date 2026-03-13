@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Index for lastSynced (username and email are already indexed via unique: true)
@@ -36,9 +36,11 @@ userSchema.methods.calculateStreak = function () {
   if (!this.submissionDates || this.submissionDates.length === 0) return 0;
 
   // Deduplicate dates by converting to midnight timestamps and using Set
-  const uniqueDates = [...new Set(
-    this.submissionDates.map((d) => new Date(d).setHours(0, 0, 0, 0))
-  )];
+  const uniqueDates = [
+    ...new Set(
+      this.submissionDates.map((d) => new Date(d).setHours(0, 0, 0, 0)),
+    ),
+  ];
   const sortedDates = uniqueDates.sort((a, b) => b - a);
 
   const today = new Date().setHours(0, 0, 0, 0);

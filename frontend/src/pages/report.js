@@ -32,18 +32,18 @@ import api from "../utils/api";
 import { useRouter } from "next/router";
 
 const ICON_MAP = {
-  "BarChart3": BarChart3,
-  "Type": Type,
-  "Link2": Link2,
-  "TreeDeciduous": TreeDeciduous,
-  "Network": Network,
-  "Zap": Zap,
-  "ArrowUpDown": ArrowUpDown,
-  "Search": Search,
-  "Layers": Layers,
-  "Users": Users,
-  "Mountain": Mountain,
-  "Hash": Hash,
+  BarChart3: BarChart3,
+  Type: Type,
+  Link2: Link2,
+  TreeDeciduous: TreeDeciduous,
+  Network: Network,
+  Zap: Zap,
+  ArrowUpDown: ArrowUpDown,
+  Search: Search,
+  Layers: Layers,
+  Users: Users,
+  Mountain: Mountain,
+  Hash: Hash,
 };
 
 const DSA_TOPICS = [
@@ -129,19 +129,33 @@ export default function Report() {
       // Transform backend data to match UI structure
       // reportData.topicStats is an object like { "array": {...}, "string": {...} }
       const topicStatsData = DSA_TOPICS.map((topic) => {
-        const topicData = reportData.topicStats?.[topic.id] || 
-                          reportData.topicStats?.[topic.id.toLowerCase()] || 
-                          { solved: 0, total: 0, accuracy: 0, easy: 0, medium: 0, hard: 0 };
+        const topicData = reportData.topicStats?.[topic.id] ||
+          reportData.topicStats?.[topic.id.toLowerCase()] || {
+            solved: 0,
+            total: 0,
+            accuracy: 0,
+            easy: 0,
+            medium: 0,
+            hard: 0,
+          };
 
         // Use real total from questions stats if available
-        const realTotal = statsToUse?.topicDistribution?.[topic.id] || topicData.total || 50;
+        const realTotal =
+          statsToUse?.topicDistribution?.[topic.id] || topicData.total || 50;
 
         return {
           ...topic,
           solved: topicData.solved || 0,
           total: realTotal,
-          accuracy: realTotal > 0 ? Math.round((topicData.solved / realTotal) * 100) : 0,
-          rating: getRating(realTotal > 0 ? Math.round((topicData.solved / realTotal) * 100) : 0),
+          accuracy:
+            realTotal > 0
+              ? Math.round((topicData.solved / realTotal) * 100)
+              : 0,
+          rating: getRating(
+            realTotal > 0
+              ? Math.round((topicData.solved / realTotal) * 100)
+              : 0,
+          ),
           easy: topicData.easy || 0,
           medium: topicData.medium || 0,
           hard: topicData.hard || 0,
@@ -149,7 +163,7 @@ export default function Report() {
       });
 
       setTopicStats(topicStatsData);
-      
+
       // Extract overall stats from API response
       const overallData = reportData.overallStats || reportData;
       setOverallStats({
@@ -173,7 +187,7 @@ export default function Report() {
           easy: 0,
           medium: 0,
           hard: 0,
-        }))
+        })),
       );
     }
   };
@@ -256,7 +270,8 @@ export default function Report() {
               <div className="hidden sm:flex items-center bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 border border-yellow-200 dark:border-yellow-700 px-3 py-1.5 rounded-full">
                 <Zap className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mr-1.5" />
                 <span className="text-sm font-semibold text-yellow-700 dark:text-yellow-300">
-                  {overallStats.streak} day{overallStats.streak !== 1 ? "s" : ""}
+                  {overallStats.streak} day
+                  {overallStats.streak !== 1 ? "s" : ""}
                 </span>
               </div>
               <ThemeToggle />
@@ -277,7 +292,8 @@ export default function Report() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            <BarChart className="inline-block w-6 h-6 mr-2" />Progress Report
+            <BarChart className="inline-block w-6 h-6 mr-2" />
+            Progress Report
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Track your DSA learning journey and identify areas for improvement
@@ -310,8 +326,7 @@ export default function Report() {
                       ? (overallStats.totalSolved / questionsStats.total) * 100
                       : 0
                   }%`,
-                }}
-              ></div>
+                }}></div>
             </div>
           </div>
 
@@ -341,8 +356,7 @@ export default function Report() {
                         100
                       : 0
                   }%`,
-                }}
-              ></div>
+                }}></div>
             </div>
           </div>
 
@@ -372,8 +386,7 @@ export default function Report() {
                         100
                       : 0
                   }%`,
-                }}
-              ></div>
+                }}></div>
             </div>
           </div>
 
@@ -403,8 +416,7 @@ export default function Report() {
                         100
                       : 0
                   }%`,
-                }}
-              ></div>
+                }}></div>
             </div>
           </div>
         </div>
@@ -444,7 +456,8 @@ export default function Report() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-8">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              <BookOpen className="inline-block w-6 h-6 mr-2" />Topic-wise Analysis
+              <BookOpen className="inline-block w-6 h-6 mr-2" />
+              Topic-wise Analysis
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Click on any topic to practice problems
@@ -537,7 +550,8 @@ export default function Report() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              <Lightbulb className="inline-block w-6 h-6 mr-2" />Recommendations
+              <Lightbulb className="inline-block w-6 h-6 mr-2" />
+              Recommendations
             </h2>
           </div>
 

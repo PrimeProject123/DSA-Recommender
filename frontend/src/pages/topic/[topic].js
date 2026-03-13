@@ -159,7 +159,7 @@ export default function TopicProblems() {
       const filterParams = {
         username: user.username,
       };
-      
+
       // Only add filters if they're not "All"
       if (filters.difficulty !== "All") {
         filterParams.difficulty = filters.difficulty;
@@ -184,13 +184,13 @@ export default function TopicProblems() {
       // Calculate stats
       const solved = problemsWithStatus.filter((p) => p.solved).length;
       const easy = problemsWithStatus.filter(
-        (p) => p.difficulty === "Easy"
+        (p) => p.difficulty === "Easy",
       ).length;
       const medium = problemsWithStatus.filter(
-        (p) => p.difficulty === "Medium"
+        (p) => p.difficulty === "Medium",
       ).length;
       const hard = problemsWithStatus.filter(
-        (p) => p.difficulty === "Hard"
+        (p) => p.difficulty === "Hard",
       ).length;
 
       setProblems(problemsWithStatus);
@@ -231,8 +231,8 @@ export default function TopicProblems() {
         (p) =>
           p.title.toLowerCase().includes(filters.search.toLowerCase()) ||
           p.tags.some((tag) =>
-            tag.toLowerCase().includes(filters.search.toLowerCase())
-          )
+            tag.toLowerCase().includes(filters.search.toLowerCase()),
+          ),
       );
     }
 
@@ -290,7 +290,9 @@ export default function TopicProblems() {
           <div className="flex items-center space-x-4 mb-4">
             {(() => {
               const IconComponent = ICON_MAP[topicInfo.icon];
-              return IconComponent ? <IconComponent className="w-10 h-10 text-blue-600 dark:text-blue-400" /> : null;
+              return IconComponent ? (
+                <IconComponent className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+              ) : null;
             })()}
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-500">

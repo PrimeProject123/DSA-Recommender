@@ -1,8 +1,8 @@
-# start-all.ps1 — Launch all 3 DSA-Recommender services
-# Usage: Right-click → Run with PowerShell, or from terminal: .\start-all.ps1
+﻿# start-all.ps1 - Launch all 3 DSA-Recommender services
+# Usage: Right-click > Run with PowerShell, or from terminal: .\start-all.ps1
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  DSA-Recommender — Starting All Services" -ForegroundColor Cyan
+Write-Host "  DSA-Recommender - Starting All Services" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
